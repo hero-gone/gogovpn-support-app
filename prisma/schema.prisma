@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+// Status, type, source and reason values are validated in app/lib/constants.ts
+// (stored as strings so the schema works on both SQLite and Postgres).
+model Ticket {
+  id              String    @id @default(cuid())
+  shop            String
+  publicId        String    @unique
+  type            String
+  source          String
+  status          String    @default("new")
+  customerEmail   String
+  customerName    String?
+  orderName       String?
+  orderGid        String?
+  orderVerified   Boolean   @default(false)
+  orderCreatedAt  DateTime?
+  orderTotal      String?
+  orderRefunded   String?
+  orderCurrency   String?
+  orderCountry    String?
+  orderFinancialStatus String?
+  productName     String?
+  requestedAmount String?
+  reason          String?
+  topic           String?
+  description     String
+  idempotencyKey  String?
+  assignedTo      String?
+  firstResponseAt DateTime?
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  messages    TicketMessage[]
+  notes       TicketNote[]
+  attachments Attachment[]
+
+  @@unique([shop, idempotencyKey])
+  @@index([shop, status])
+  @@index([shop, customerEmail])
+  @@index([shop, orderName])
+  @@index([shop, createdAt])
+}
+
+model TicketMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author      String
+  authorLabel String?
+  body        String
+  emailStatus String?
+  createdAt   DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketNote {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  ticketId     String
+  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  kind         String
+  storageKey   String   @unique
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  sha256       String
+  createdAt    DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  shop      String
+  ticketId  String?
+  actor     String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@index([shop, createdAt])
+  @@index([ticketId])
+}
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  shop      String
+  key       String
+  subject   String
+  body      String
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  @@unique([shop, key])
+}
+
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}

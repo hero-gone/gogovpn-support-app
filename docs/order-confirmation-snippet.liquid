@@ -1,0 +1,40 @@
+{% comment %}
+  "Request Support or a Refund" block for Shopify notification emails.
+
+  Where: Shopify Admin → Settings → Notifications → Customer notifications →
+         Order confirmation → Edit code.
+  Paste: directly ABOVE the line that contains  {% if order_status_url %}
+         (or, if you can't find it, just above the closing "footer" table near the bottom).
+  Repeat for any other email that delivers the activation key (e.g. "Shipping confirmation" /
+  "Order fulfilled" if your key-delivery app uses it).
+
+  Safe by design: the link contains no order number, email or key. The refund form asks the
+  customer for their order number + email and verifies them on the server.
+{% endcomment %}
+<table class="row" style="width:100%;border-spacing:0;border-collapse:collapse;margin-top:24px;">
+  <tr>
+    <td style="padding:20px 22px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;">
+      <h3 style="margin:0 0 8px;font-size:16px;line-height:1.3;color:#111827;font-weight:600;">
+        Need help with your activation key?
+      </h3>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.55;color:#4b5563;">
+        If your key didn't arrive, won't activate, or the VPN doesn't work on your device, our support team can help.
+        You can report activation, compatibility and service problems, or request a refund, in our Refund Center.
+      </p>
+      <table style="border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td style="border-radius:6px;background:#ff9900;">
+            <a href="{{ shop.url }}/pages/refund-request"
+               style="display:inline-block;padding:12px 22px;font-size:15px;font-weight:600;line-height:1.2;color:#0b1120;text-decoration:none;border-radius:6px;">
+              Request Support or a Refund
+            </a>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#6b7280;">
+        Have your order number {{ order_name }} and the email used at checkout ready.
+        We will never ask for your card number or passwords.
+      </p>
+    </td>
+  </tr>
+</table>

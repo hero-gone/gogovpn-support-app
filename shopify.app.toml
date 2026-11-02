@@ -1,0 +1,39 @@
+# Linked later with: shopify app config link --reset
+# Do not paste Client secrets here. Hostinger env vars hold SHOPIFY_API_KEY / SHOPIFY_API_SECRET.
+name = "gogoVPN Support & Refunds"
+application_url = "https://REPLACE-WITH-HOSTINGER-URL"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = false
+include_config_on_deploy = true
+
+[access_scopes]
+scopes = "read_orders,write_content,write_files,write_themes"
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "https://REPLACE-WITH-HOSTINGER-URL/auth/callback",
+  "https://REPLACE-WITH-HOSTINGER-URL/auth/shopify/callback",
+  "https://REPLACE-WITH-HOSTINGER-URL/api/auth/callback"
+]
+
+[app_proxy]
+url = "https://REPLACE-WITH-HOSTINGER-URL/proxy"
+subpath = "support"
+prefix = "apps"
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  [[webhooks.subscriptions]]
+  topics = ["app/scopes_update"]
+  uri = "/webhooks/app/scopes_update"
+
+[pos]
+embedded = false

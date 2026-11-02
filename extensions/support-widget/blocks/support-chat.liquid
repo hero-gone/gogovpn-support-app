@@ -1,0 +1,86 @@
+{%- liquid
+  assign refund_url = block.settings.refund_page_url | default: '/pages/refund-request'
+  assign faq_url = block.settings.faq_url | default: '/pages/faq'
+  assign howto_url = block.settings.how_to_url | default: '/pages/how-to-use'
+-%}
+<div
+  id="vs-support-chat"
+  class="vs-chat"
+  data-proxy="/apps/support"
+  data-app-src="{{ 'support-chat-app.js' | asset_url }}"
+  data-shop-name="{{ shop.name | escape }}"
+  data-refund-url="{{ refund_url | escape }}"
+  data-faq-url="{{ faq_url | escape }}"
+  data-howto-url="{{ howto_url | escape }}"
+  data-hours="{{ block.settings.support_hours | escape }}"
+  data-response-time="{{ block.settings.response_time | escape }}"
+  data-greeting="{{ block.settings.greeting | escape }}"
+  data-customer-email="{{ customer.email | escape }}"
+  data-customer-name="{{ customer.first_name | escape }}"
+  style="--vs-accent: {{ block.settings.accent_color }};"
+></div>
+
+{% schema %}
+{
+  "name": "Support chat",
+  "target": "body",
+  "javascript": "support-chat.js",
+  "stylesheet": "support-chat.css",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Availability"
+    },
+    {
+      "type": "text",
+      "id": "support_hours",
+      "label": "Support hours",
+      "default": "Mon–Fri, 9:00–18:00 (UTC)"
+    },
+    {
+      "type": "text",
+      "id": "response_time",
+      "label": "Expected response time",
+      "default": "within 24 hours on business days"
+    },
+    {
+      "type": "textarea",
+      "id": "greeting",
+      "label": "Greeting",
+      "default": "Hi! I'm the automated help assistant. I can answer common questions about activation keys, setup and refunds, or pass your message to our support team."
+    },
+    {
+      "type": "header",
+      "content": "Links"
+    },
+    {
+      "type": "url",
+      "id": "refund_page_url",
+      "label": "Refund request page",
+      "info": "Defaults to /pages/refund-request"
+    },
+    {
+      "type": "url",
+      "id": "faq_url",
+      "label": "FAQ page",
+      "info": "Defaults to /pages/faq"
+    },
+    {
+      "type": "url",
+      "id": "how_to_url",
+      "label": "How-to / setup guide",
+      "info": "Defaults to /pages/how-to-use"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#ff9900"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,272 @@
+{%- liquid
+  assign uid = block.id | prepend: 'vs-rf-'
+  assign policy_url = block.settings.policy_url | default: '/pages/refund-policy'
+-%}
+<div
+  class="vs-refund"
+  data-vs-refund
+  data-proxy="/apps/support"
+  style="--vs-accent: {{ block.settings.accent_color }};"
+  {{ block.shopify_attributes }}
+>
+  <div class="vs-refund__card" data-vs-refund-form-wrap>
+    {%- if block.settings.heading != blank -%}
+      <h2 class="vs-refund__heading">{{ block.settings.heading | escape }}</h2>
+    {%- endif -%}
+    {%- if block.settings.intro != blank -%}
+      <div class="vs-refund__intro">{{ block.settings.intro }}</div>
+    {%- endif -%}
+
+    <div class="vs-refund__notice" role="note">
+      <strong>For your security:</strong> never enter payment card numbers, passwords or VPN account credentials in this form.
+    </div>
+
+    <form
+      class="vs-refund__form"
+      action="/apps/support/refund"
+      method="post"
+      enctype="multipart/form-data"
+      novalidate
+      data-vs-refund-form
+    >
+      <div class="vs-refund__error-summary" role="alert" tabindex="-1" hidden data-vs-error-summary></div>
+
+      {%- if customer and customer.orders.size > 0 -%}
+        <div class="vs-refund__field">
+          <label class="vs-refund__label" for="{{ uid }}-order-pick">Your order</label>
+          <select class="vs-refund__input" id="{{ uid }}-order-pick" data-vs-order-pick>
+            <option value="">Select an order…</option>
+            {%- for order in customer.orders limit: 25 -%}
+              {%- capture products -%}{%- for li in order.line_items limit: 5 -%}{{ li.title }}{%- unless forloop.last -%}, {% endunless -%}{%- endfor -%}{%- endcapture -%}
+              <option
+                value="{{ order.name | escape }}"
+                data-product="{{ products | strip | escape }}"
+              >
+                {{ order.name }} · {{ order.created_at | date: '%b %-d, %Y' }} · {{ order.total_price | money }}
+              </option>
+            {%- endfor -%}
+            <option value="__manual">A different order (enter manually)</option>
+          </select>
+        </div>
+      {%- endif -%}
+
+      <div class="vs-refund__grid">
+        <div class="vs-refund__field">
+          <label class="vs-refund__label" for="{{ uid }}-order">Order number <span aria-hidden="true">*</span></label>
+          <input
+            class="vs-refund__input"
+            id="{{ uid }}-order"
+            name="order_number"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            placeholder="#1001"
+            maxlength="40"
+            required
+            aria-describedby="{{ uid }}-order-hint {{ uid }}-order-error"
+          >
+          <p class="vs-refund__hint" id="{{ uid }}-order-hint">Shown in your order confirmation email.</p>
+          <p class="vs-refund__field-error" id="{{ uid }}-order-error" data-error-for="order_number" hidden></p>
+        </div>
+
+        <div class="vs-refund__field">
+          <label class="vs-refund__label" for="{{ uid }}-email">Email used for the purchase <span aria-hidden="true">*</span></label>
+          <input
+            class="vs-refund__input"
+            id="{{ uid }}-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            maxlength="254"
+            required
+            value="{{ customer.email | escape }}"
+            aria-describedby="{{ uid }}-email-error"
+          >
+          <p class="vs-refund__field-error" id="{{ uid }}-email-error" data-error-for="email" hidden></p>
+        </div>
+
+        <div class="vs-refund__field">
+          <label class="vs-refund__label" for="{{ uid }}-product">Product name <span class="vs-refund__optional">(optional)</span></label>
+          <input
+            class="vs-refund__input"
+            id="{{ uid }}-product"
+            name="product_name"
+            type="text"
+            maxlength="200"
+            placeholder="{{ block.settings.product_placeholder | escape }}"
+            aria-describedby="{{ uid }}-product-error"
+          >
+          <p class="vs-refund__field-error" id="{{ uid }}-product-error" data-error-for="product_name" hidden></p>
+        </div>
+
+        <div class="vs-refund__field">
+          <label class="vs-refund__label" for="{{ uid }}-amount">Refund amount requested <span class="vs-refund__optional">(optional)</span></label>
+          <input
+            class="vs-refund__input"
+            id="{{ uid }}-amount"
+            name="refund_amount"
+            type="text"
+            inputmode="decimal"
+            maxlength="12"
+            placeholder="Leave blank for a full refund"
+            aria-describedby="{{ uid }}-amount-error"
+          >
+          <p class="vs-refund__field-error" id="{{ uid }}-amount-error" data-error-for="refund_amount" hidden></p>
+        </div>
+      </div>
+
+      <div class="vs-refund__field">
+        <label class="vs-refund__label" for="{{ uid }}-reason">Reason for the request <span aria-hidden="true">*</span></label>
+        <select class="vs-refund__input" id="{{ uid }}-reason" name="reason" required aria-describedby="{{ uid }}-reason-error">
+          <option value="">Choose a reason…</option>
+          <option value="key_not_received">VPN activation key not received</option>
+          <option value="key_not_working">Activation key does not work</option>
+          <option value="connection_problem">VPN connection problem</option>
+          <option value="compatibility">Device or operating system compatibility issue</option>
+          <option value="not_as_described">Product does not match its description</option>
+          <option value="duplicate_purchase">Duplicate purchase</option>
+          <option value="accidental_purchase">Accidental purchase</option>
+          <option value="billing_issue">Subscription or billing issue</option>
+          <option value="other">Other</option>
+        </select>
+        <p class="vs-refund__field-error" id="{{ uid }}-reason-error" data-error-for="reason" hidden></p>
+      </div>
+
+      <div class="vs-refund__field">
+        <label class="vs-refund__label" for="{{ uid }}-description">Describe the problem <span aria-hidden="true">*</span></label>
+        <textarea
+          class="vs-refund__input"
+          id="{{ uid }}-description"
+          name="description"
+          rows="6"
+          minlength="20"
+          maxlength="5000"
+          required
+          aria-describedby="{{ uid }}-description-hint {{ uid }}-description-error"
+        ></textarea>
+        <p class="vs-refund__hint" id="{{ uid }}-description-hint">Include your device, the app you used and any error message you saw. This helps us resolve it faster.</p>
+        <p class="vs-refund__field-error" id="{{ uid }}-description-error" data-error-for="description" hidden></p>
+      </div>
+
+      <div class="vs-refund__grid">
+        <div class="vs-refund__field">
+          <label class="vs-refund__label" for="{{ uid }}-screenshot">Screenshot <span class="vs-refund__optional">(optional)</span></label>
+          <input
+            class="vs-refund__file"
+            id="{{ uid }}-screenshot"
+            name="screenshot"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            data-max-bytes="5242880"
+            aria-describedby="{{ uid }}-screenshot-hint {{ uid }}-screenshot-error"
+          >
+          <p class="vs-refund__hint" id="{{ uid }}-screenshot-hint">PNG, JPG or WebP, up to 5 MB.</p>
+          <p class="vs-refund__field-error" id="{{ uid }}-screenshot-error" data-error-for="screenshot" hidden></p>
+        </div>
+
+        <div class="vs-refund__field">
+          <label class="vs-refund__label" for="{{ uid }}-video">Screen recording <span class="vs-refund__optional">(optional)</span></label>
+          <input
+            class="vs-refund__file"
+            id="{{ uid }}-video"
+            name="video"
+            type="file"
+            accept="video/mp4,video/quicktime,video/webm"
+            data-max-bytes="20971520"
+            aria-describedby="{{ uid }}-video-hint {{ uid }}-video-error"
+          >
+          <p class="vs-refund__hint" id="{{ uid }}-video-hint">MP4, MOV or WebM, up to 20 MB.</p>
+          <p class="vs-refund__field-error" id="{{ uid }}-video-error" data-error-for="video" hidden></p>
+        </div>
+      </div>
+
+      <div class="vs-refund__hp" aria-hidden="true">
+        <label>Leave this field empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+      <input type="hidden" name="started_at" value="" data-vs-started>
+      <input type="hidden" name="idempotency_key" value="" data-vs-idem>
+      <input type="hidden" name="allow_unverified" value="false" data-vs-allow-unverified>
+
+      <div class="vs-refund__field vs-refund__field--check">
+        <input class="vs-refund__checkbox" id="{{ uid }}-confirm" name="confirm_accurate" type="checkbox" required aria-describedby="{{ uid }}-confirm-error">
+        <label for="{{ uid }}-confirm">I confirm that the information I've provided is accurate. <span aria-hidden="true">*</span></label>
+        <p class="vs-refund__field-error" id="{{ uid }}-confirm-error" data-error-for="confirm_accurate" hidden></p>
+      </div>
+
+      <div class="vs-refund__unverified" role="alert" hidden data-vs-unverified>
+        <p data-vs-unverified-text></p>
+        <div class="vs-refund__unverified-actions">
+          <button type="button" class="vs-refund__btn vs-refund__btn--ghost" data-vs-fix-details>Check my details</button>
+          <button type="button" class="vs-refund__btn vs-refund__btn--primary" data-vs-submit-unverified>Submit for manual review</button>
+        </div>
+      </div>
+
+      <div class="vs-refund__submit-row">
+        <button type="submit" class="vs-refund__btn vs-refund__btn--primary" data-vs-submit>Submit refund request</button>
+        <p class="vs-refund__policy">
+          Every request is reviewed by our team. Read our <a href="{{ policy_url }}">refund policy</a>.
+        </p>
+      </div>
+    </form>
+  </div>
+
+  <div class="vs-refund__card vs-refund__success" tabindex="-1" hidden data-vs-success>
+    <div class="vs-refund__success-icon" aria-hidden="true">✓</div>
+    <h2 class="vs-refund__heading">Request received</h2>
+    <p>Your request ID is <strong class="vs-refund__ticket-id" data-vs-ticket-id></strong>. Please keep it for your records.</p>
+    <p data-vs-duplicate-note hidden>You already have an open request for this order, so we've kept your existing request rather than creating a new one.</p>
+    <h3 class="vs-refund__subheading">What happens next</h3>
+    <ol class="vs-refund__steps">
+      <li>Our team will review your request {{ block.settings.response_time | escape }}.</li>
+      <li>We'll reply to <strong data-vs-success-email></strong> if we need more details, can fix a technical problem for you, or have an outcome. Check your spam folder too.</li>
+      <li>No refund has been issued yet. Mention your request ID if you contact us about it.</li>
+    </ol>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Refund request form",
+  "target": "section",
+  "javascript": "refund-form.js",
+  "stylesheet": "refund-form.css",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Request a refund"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Introduction",
+      "default": "<p>Tell us what went wrong. Many activation and connection problems can be fixed quickly, and we'll offer help where we can. Every request is reviewed by a member of our team.</p>"
+    },
+    {
+      "type": "text",
+      "id": "product_placeholder",
+      "label": "Product name placeholder",
+      "default": "Lifetime VPN Activation Key"
+    },
+    {
+      "type": "text",
+      "id": "response_time",
+      "label": "Review time (shown after submission)",
+      "default": "within 1–2 business days"
+    },
+    {
+      "type": "url",
+      "id": "policy_url",
+      "label": "Refund policy page",
+      "info": "Defaults to /pages/refund-policy"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#ff9900"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,10 @@
+.cache
+build
+node_modules
+.env
+.env.*
+storage
+prisma/*.sqlite
+prisma/*.sqlite-journal
+tests
+.git
